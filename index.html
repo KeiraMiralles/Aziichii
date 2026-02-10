@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choice Overload: The Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Boba Theme */
+            --bg-cute: #FFF0F5;
+            --text-cute: #5D5C61;
+            --accent-cute: #FF9AA2;
+            --accent-cute-hover: #FFB7B2;
+            --secondary-cute: #B5EAD7;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            
+            /* Reboot Theme (Ultra Girlish/Cute) */
+            --bg-reboot: #FFC0CB; /* Pink */
+            --text-reboot: #FF1493; /* Deep Pink */
+            --accent-reboot: #FF69B4; /* Hot Pink */
+            --btn-border: #FFB6C1;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-cute);
+            /* Cute Polka Dot Pattern */
+            background-image: radial-gradient(var(--accent-cute) 15%, transparent 16%),
+                              radial-gradient(var(--secondary-cute) 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            color: var(--text-cute);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- CONTAINER STYLES --- */
+        #game-container {
+            width: 95%;
+            max-width: 800px;
+            height: 90vh;
+            position: relative;
+            background: var(--card-bg);
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(255, 154, 162, 0.3);
+            overflow-y: auto;
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            border: 4px solid #fff;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1 { font-size: 2.8rem; margin-bottom: 10px; color: var(--accent-cute); text-shadow: 2px 2px 0px #FFF; }
+        h2 { font-size: 1.8rem; margin-bottom: 20px; color: #555; }
+        p { font-size: 1.3rem; line-height: 1.6; color: #666; }
+        
+        .hidden { display: none !important; }
+        
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        /* --- MENUS & BUTTONS --- */
+        .menu-btn {
+            background: #fff;
+            border: 3px solid var(--accent-cute);
+            color: var(--text-cute);
+            padding: 20px 30px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            font-family: 'Fredoka', sans-serif;
+            margin: 10px;
+            width: 80%;
+            max-width: 300px;
+            font-weight: bold;
+            box-shadow: 0 5px 0 var(--accent-cute);
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            background: var(--accent-cute);
+            color: white;
+            box-shadow: 0 8px 0 #E58990;
+        }
+
+        /* --- SCENE 1: BOBA SHOP (CUTE) --- */
+        .boba-btn {
+            background: var(--accent-cute);
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            font-family: 'Fredoka', sans-serif;
+            box-shadow: 0 6px 0px #E58990; /* 3D effect */
+            margin-top: 20px;
+        }
+
+        .boba-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px #E58990;
+        }
+
+        .boba-btn:hover { background: var(--accent-cute-hover); }
+
+        .round-indicator {
+            background: var(--secondary-cute);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        /* Receipt Style Ticket */
+        .order-ticket {
+            background: #fff;
+            padding: 20px;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 500px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            position: relative;
+            filter: drop-shadow(0px 5px 3px rgba(0,0,0,0.1));
+        }
+        
+        /* Zigzag bottom edge for receipt */
+        .order-ticket::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -10px;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(135deg, transparent 50%, #fff 50%), 
+                        linear-gradient(45deg, #fff 50%, transparent 50%);
+            background-size: 20px 20px;
+            background-repeat: repeat-x;
+        }
+
+        .topping-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
+            margin-top: 25px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        /* Custom Scrollbar for cute feel */
+        .topping-grid::-webkit-scrollbar { width: 8px; }
+        .topping-grid::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .topping-grid::-webkit-scrollbar-thumb { background: var(--accent-cute); border-radius: 10px; }
+
+        .topping-item {
+            background: white;
+            border: 2px solid var(--secondary-cute);
+            padding: 15px 5px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #555;
+            box-shadow: 0 4px 0 #A3D3C2;
+        }
+
+        .topping-item:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #A3D3C2;
+            background: var(--secondary-cute);
+        }
+        
+        .topping-item.selected {
+            background: var(--accent-cute);
+            border-color: var(--accent-cute);
+            color: white;
+            box-shadow: 0 4px 0 #E58990;
+        }
+
+        /* --- SCENE 2: THEORY (TRANSITION) --- */
+        .theory-card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            border-left: 12px solid var(--accent-cute);
+            margin: 20px 0;
+            text-align: left;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        
+        .theory-highlight {
+            color: var(--accent-cute);
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        /* --- SCENE 3: FAST TALK (GIRLISH MODE) --- */
+        body.reboot-mode {
+            background: var(--bg-reboot);
+            /* White Polka Dots */
+            background-image: 
+                radial-gradient(white 15%, transparent 16%),
+                radial-gradient(white 15%, transparent 16%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            color: var(--text-reboot);
+        }
+
+        .reboot-mode #game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border: 5px solid #FFB6C1;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.4);
+            border-radius: 50px;
+        }
+
+        .reboot-mode h1 {
+            font-family: 'Fredoka', sans-serif;
+            color: #FF69B4;
+            text-shadow: 2px 2px 0px #FFF;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .reboot-mode p {
+            color: #888;
+        }
+
+        .reboot-timer {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: bold;
+            font-size: 4rem;
+            color: #FF69B4;
+            background: #FFF;
+            border: 4px solid #FFB6C1;
+            width: 130px;
+            height: 130px;
+            line-height: 120px;
+            border-radius: 50%;
+            margin: 0 auto;
+            box-shadow: 0 8px 15px rgba(255, 182, 193, 0.4);
+            transition: all 0.2s;
+        }
+
+        .choice-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .choice-btn {
+            background: #FFF;
+            border: 2px solid #FFB6C1;
+            color: #FF69B4;
+            padding: 12px 5px;
+            min-width: 22%; /* Fits 4 per row for chaos rounds */
+            flex-grow: 1;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            box-shadow: 0 4px 0 #FFB6C1;
+            transition: all 0.2s ease;
+        }
+
+        .choice-btn:hover {
+            background: #FF69B4;
+            color: white;
+            box-shadow: 0 6px 0 #FF1493;
+            transform: translateY(-3px);
+            border-color: #FF1493;
+        }
+        
+        .choice-btn:active {
+            box-shadow: 0 0 0 #FF1493;
+            transform: translateY(5px);
+        }
+
+        /* --- READY OVERLAY --- */
+        #ready-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-radius: 40px;
+            backdrop-filter: blur(5px);
+        }
+        
+        #ready-text {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-cute);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- UTILS --- */
+        .shake { animation: shake 0.5s infinite; }
+        
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .progress-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .dot.active { background: var(--accent-cute); transform: scale(1.3); }
+        .reboot-mode .dot.active { background: #FF69B4; }
+        
+        #boba-feedback {
+            font-weight: bold;
+            height: 20px;
+            margin-top: 5px;
+            color: var(--accent-cute);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <!-- READY OVERLAY -->
+        <div id="ready-overlay" class="hidden">
+            <div id="ready-text">READY?</div>
+        </div>
+
+        <!-- 0. MAIN MENU -->
+        <div id="slide-menu" class="slide">
+            <h1>✨ CHOOSE GAME ✨</h1>
+            <p>Select your challenge:</p>
+            <br>
+            <button class="menu-btn" onclick="goToBobaIntro()">🧋 Boba Shop Panic</button>
+            <button class="menu-btn" onclick="goToFastTalkIntro()">🚀 Fast Talk</button>
+        </div>
+
+        <!-- 1. BOBA INTRO SCREEN -->
+        <div id="slide-intro" class="slide hidden">
+            <h1>🧋 Boba Shop Panic 🧋</h1>
+            <p>Welcome, trainee! Are you ready to take orders?</p>
+            <p>You have 3 rounds to prove your skills.</p>
+            <br>
+            <button class="boba-btn" onclick="prepBobaRound(1)">START SHIFT</button>
+            <div style="margin-top:20px;">
+                <button onclick="showSlide('slide-menu')" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:#888;">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- 2. BOBA GAME SCREEN -->
+        <div id="slide-boba-game" class="slide hidden">
+            <div class="round-indicator">ROUND <span id="round-num">1</span>/3</div>
+            <h2>⏳ Time: <span id="boba-timer">10</span>s</h2>
+            
+            <div class="order-ticket">
+                <strong>ORDER #<span id="order-num">101</span>:</strong><br><br>
+                <span id="complex-order-text" style="font-size: 1.2rem; color: #333;">...</span>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: #888;">Tap the correct ingredients!</p>
+            <div id="boba-feedback"></div>
+            
+            <div id="topping-grid" class="topping-grid">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+
+        <!-- 3. FAIL SCREEN (Educational Hook) -->
+        <div id="slide-fail" class="slide hidden">
+            <h1 style="color: #FF5555">SYSTEM OVERLOAD! 🤯</h1>
+            <p>That last order was impossible, right?</p>
+            <p>Too many choices = Brain Freeze.</p>
+            <button class="boba-btn" onclick="goToTheory()">WHY DID I FAIL?</button>
+        </div>
+        
+        <!-- 3.5 SUCCESS INTERSTITIAL -->
+        <div id="slide-success" class="slide hidden">
+            <h1 style="color: var(--secondary-cute)">GREAT JOB! ✨</h1>
+            <p>Order Complete.</p>
+            <p>Get ready, it gets harder...</p>
+            <button class="boba-btn" id="next-round-btn">NEXT LEVEL</button>
+        </div>
+
+        <!-- 4. THEORY: DEFINITIONS -->
+        <div id="slide-theory-1" class="slide hidden">
+            <h1>The Paradox of Choice</h1>
+            <div class="theory-card">
+                <p><strong>Barry Schwartz</strong> says: <br>"More options doesn't mean more freedom. It means more anxiety."</p>
+            </div>
+            <div class="theory-card">
+                <p><strong>Alvin Toffler</strong> calls it:<br><span class="theory-highlight">CHOICE OVERLOAD</span></p>
+                <p>When the brain freezes because there is simply too much data to process.</p>
+            </div>
+            <button class="boba-btn" onclick="showSlide('slide-menu')">BACK TO MENU</button>
+        </div>
+
+        <!-- 5. REBOOT MODE INTRO (FAST TALK INTRO) -->
+        <div id="slide-neon-intro" class="slide hidden">
+            <h1>✨ FAST TALK ✨</h1>
+            <p>Thinking fast is hard when choices multiply.</p>
+            <p>Apply <strong>CATEGORIZATION</strong> to survive.</p>
+            <p>Watch out! The choices will increase!</p>
+            <br>
+            <button class="choice-btn" style="background:#FF69B4; color:white; border:none;" onclick="prepFastTalk()">START FAST TALK</button>
+             <div style="margin-top:20px;">
+                <button onclick="backToMenuFromReboot()" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:#FF1493;">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- 6. FAST TALK GAME -->
+        <div id="slide-fast-talk" class="slide hidden">
+            <div class="reboot-timer" id="fast-timer">5</div>
+            <h2 id="fast-question" style="margin-top:20px; font-weight:bold; color: #FF69B4;">QUESTION</h2>
+            
+            <!-- Dynamic Choice Container -->
+            <div id="fast-options-container" class="choice-container">
+                <!-- Buttons injected by JS -->
+            </div>
+        </div>
+
+        <!-- 7. CONCLUSION -->
+        <div id="slide-end" class="slide hidden">
+            <h1>✨ GAME OVER ✨</h1>
+            <p>See the difference?</p>
+            <div class="theory-card" style="background: #fff; border-color: #FF69B4;">
+                <p><strong>Tips for success:</strong></p>
+                <ul>
+                    <li>Limit options (Less is More)</li>
+                    <li>Categorize choices</li>
+                    <li>Use Smart Defaults</li>
+                </ul>
+            </div>
+            <button class="choice-btn" onclick="location.reload()">MAIN MENU</button>
+        </div>
+
+        <div class="progress-dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & VARIABLES ---
+        const bobaToppings = [
+            "Pearls", "Pudding", "Nata", "Red Bean", "Aloe", "Grass Jelly", 
+            "Lychee Jelly", "Coffee Jelly", "Chia Seeds", "Oreo", "Cream Cheese",
+            "Salted Cream", "Taro Paste", "Crystal Boba", "Popping Boba",
+            "Hantien Jelly", "Mochi", "Chestnut", "Barley", "Oats", "Sago", 
+            "Coconut Jelly", "Ice Cream", "Creme Brulee"
+        ];
+        
+        // Fast Talk Data (Progressively Harder)
+        const fastTalkQuestions = [
+            // Round 1: 2 Choices (Easy) - 5 Seconds
+            { q: "Social Media?", options: ["TikTok", "Instagram"], time: 5 },
+            
+            // Round 2: 6 Choices (Medium) - 4 Seconds
+            { q: "Streaming?", options: ["Netflix", "YouTube", "Disney+", "HBO Go", "Prime", "Hulu"], time: 4 },
+            
+            // Round 3: 12 Choices (Hard) - 3 Seconds
+            { q: "Pinoy Snack?", options: ["Turon", "Halo-Halo", "Isaw", "Fishball", "Kwek-kwek", "Taho", "Balut", "Banana Cue", "Siomai", "Fries", "Lumpia", "Tempura"], time: 3 },
+            
+            // Round 4: 16 Choices (Chaos) - 2 Seconds
+            { q: "Fast Food?", options: ["Jollibee", "McDo", "KFC", "Chowking", "Greenwich", "Inasal", "BK", "Wendy's", "Shakey's", "Popeyes", "BonChon", "Kenny's", "Pizza Hut", "Domino's", "Subway", "Panda"], time: 2 }
+        ];
+
+        let currentBobaRound = 1;
+        let bobaTargets = [];
+        let bobaInterval;
+        let currentFastQ = 0;
+        let fastTalkInterval;
+        let audioCtx;
+
+        // --- AUDIO FUNCTIONS ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBeep(freq = 600, duration = 0.1) {
+            if(!audioCtx) initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.rate = 1.2;
+                msg.pitch = 1.2; // Slightly higher pitch for cute vibe
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        // --- NAVIGATION FUNCTIONS ---
+        function showSlide(id) {
+            document.querySelectorAll('.slide').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function goToBobaIntro() {
+            initAudio();
+            document.body.className = ''; // Reset theme
+            showSlide('slide-intro');
+        }
+
+        function goToFastTalkIntro() {
+            initAudio();
+            goToRebootMode();
+        }
+
+        function backToMenuFromReboot() {
+            document.body.className = ''; // Reset theme
+            showSlide('slide-menu');
+        }
+
+        // --- GAME FLOW HELPERS ---
+        function runPreGameSequence(callback) {
+            const overlay = document.getElementById('ready-overlay');
+            const readyText = document.getElementById('ready-text');
+            
+            overlay.classList.remove('hidden');
+            readyText.innerText = "READY?";
+            speak("Ready?");
+            
+            setTimeout(() => {
+                readyText.innerText = "TIMER STARTS NOW!";
+                speak("Timer starts now!");
+                
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    callback();
+                }, 1500);
+            }, 1000);
+        }
+
+        // --- BOBA GAME LOGIC ---
+        
+        function prepBobaRound(round) {
+            runPreGameSequence(() => startBobaRound(round));
+        }
+
+        function startBobaRound(round) {
+            currentBobaRound = round;
+            showSlide('slide-boba-game');
+            document.getElementById('round-num').innerText = round;
+            document.getElementById('boba-feedback').innerText = "";
+            document.getElementById('game-container').classList.remove('shake');
+            
+            const grid = document.getElementById('topping-grid');
+            grid.innerHTML = '';
+            
+            let timeLimit = 10;
+            let orderText = "";
+            let options = [];
+            bobaTargets = []; // Reset targets
+
+            if (round === 1) {
+                // ROUND 1: Easy (4 options, 1 target)
+                timeLimit = 8;
+                bobaTargets = ["Pearls"];
+                orderText = "Classic Milk Tea with Pearls.";
+                options = ["Pearls", "Pudding", "Nata", "Oreo"];
+                
+            } else if (round === 2) {
+                // ROUND 2: Medium (12 options, 2 targets)
+                timeLimit = 6;
+                bobaTargets = ["Pudding", "Red Bean"];
+                orderText = "Taro Milk Tea with Pudding and Red Bean.";
+                options = bobaToppings.slice(0, 12);
+                
+            } else {
+                // ROUND 3: Impossible (50 options, Chaos)
+                timeLimit = 5;
+                bobaTargets = ["Everything"]; // User can't win this
+                orderText = "Large Wintermelon, 35% Sugar, Less Ice, with Nata, Aloe, Grass Jelly, and extra Cream Cheese.";
+                // Create Chaos Array
+                options = [...bobaToppings, ...bobaToppings, ...bobaToppings].sort(() => Math.random() - 0.5);
+            }
+
+            document.getElementById('complex-order-text').innerText = orderText;
+            document.getElementById('order-num').innerText = 100 + round;
+
+            // Populate Grid
+            options.sort(() => Math.random() - 0.5); // Shuffle
+            options.forEach(top => {
+                const btn = document.createElement('button');
+                btn.className = 'topping-item';
+                btn.innerText = top;
+                btn.onclick = () => handleBobaClick(btn, top, round);
+                grid.appendChild(btn);
+            });
+
+            // Start Timer
+            startBobaTimer(timeLimit, round);
+        }
+
+        function handleBobaClick(btn, topping, round) {
+            if (round === 3) {
+                // Round 3 is chaos, clicks just turn red/stressful
+                btn.style.background = '#FF9AA2';
+                btn.style.color = 'white';
+                playBeep(200, 0.1); // Low error beep
+                return; 
+            }
+
+            if (bobaTargets.includes(topping)) {
+                playBeep(800, 0.1); // High success beep
+                btn.classList.add('selected');
+                // Remove found target from list
+                bobaTargets = bobaTargets.filter(t => t !== topping);
+                
+                if (bobaTargets.length === 0) {
+                    // WIN ROUND
+                    clearInterval(bobaInterval);
+                    setTimeout(() => {
+                        winBobaRound(round);
+                    }, 500);
+                }
+            } else {
+                // Wrong click
+                playBeep(200, 0.2); // Error beep
+                btn.style.background = '#ccc';
+                btn.style.opacity = '0.5';
+            }
+        }
+
+        function startBobaTimer(time, round) {
+            const timerEl = document.getElementById('boba-timer');
+            timerEl.innerText = time;
+            timerEl.style.color = '#555';
+
+            if (bobaInterval) clearInterval(bobaInterval);
+
+            bobaInterval = setInterval(() => {
+                time--;
+                timerEl.innerText = time;
+                
+                // Sound logic
+                if (time <= 3 && time > 0) {
+                    playBeep(600, 0.1); // Warning beep
+                    timerEl.style.color = '#FF5555';
+                    if(round === 3) document.getElementById('game-container').classList.add('shake');
+                }
+                
+                if(time <= 0) {
+                    clearInterval(bobaInterval);
+                    playBeep(150, 0.5); // Time's up sound
+                    document.getElementById('game-container').classList.remove('shake');
+                    
+                    if (round === 3) {
+                        showSlide('slide-fail');
+                    } else {
+                        // If they fail easy rounds, just push them anyway
+                        if (bobaTargets.length > 0) {
+                             document.getElementById('boba-feedback').innerText = "Too slow! Try faster next time.";
+                             setTimeout(() => winBobaRound(round), 1000); // Pity pass
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        function winBobaRound(round) {
+            if (round < 3) {
+                // Show Success Interstitial
+                showSlide('slide-success');
+                const nextBtn = document.getElementById('next-round-btn');
+                nextBtn.onclick = () => prepBobaRound(round + 1);
+            } else {
+                showSlide('slide-fail');
+            }
+        }
+
+        function goToTheory() {
+            showSlide('slide-theory-1');
+        }
+
+        function goToRebootMode() {
+            document.body.classList.add('reboot-mode');
+            showSlide('slide-neon-intro');
+        }
+
+        // --- FAST TALK LOGIC ---
+        function prepFastTalk() {
+             runPreGameSequence(() => {
+                 showSlide('slide-fast-talk');
+                 loadFastQuestion();
+             });
+        }
+
+        function loadFastQuestion() {
+            if (fastTalkInterval) clearInterval(fastTalkInterval);
+            document.getElementById('game-container').classList.remove('shake');
+
+            if(currentFastQ >= fastTalkQuestions.length) {
+                showSlide('slide-end');
+                return;
+            }
+
+            const qData = fastTalkQuestions[currentFastQ];
+            document.getElementById('fast-question').innerText = qData.q;
+            
+            // Clear previous buttons
+            const container = document.getElementById('fast-options-container');
+            container.innerHTML = '';
+
+            // Generate buttons dynamically based on options array
+            qData.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerText = opt;
+                btn.onclick = () => nextFastQuestion();
+                container.appendChild(btn);
+            });
+            
+            let fastTime = qData.time;
+            const timerEl = document.getElementById('fast-timer');
+            timerEl.innerText = fastTime;
+            timerEl.style.background = '#FFF'; // Reset color
+            timerEl.style.color = '#FF69B4'; // Reset text color
+            
+            // Reset styles
+            document.getElementById('game-container').style.borderColor = '#FFB6C1';
+
+            fastTalkInterval = setInterval(() => {
+                fastTime--;
+                timerEl.innerText = fastTime;
+
+                // Sound logic
+                if (fastTime <= 3 && fastTime > 0) {
+                     playBeep(880, 0.05); // High pitch urgency
+                }
+
+                if (fastTime <= 2) {
+                    timerEl.style.background = '#FF1493'; // Flash Dark Pink
+                    timerEl.style.color = '#FFF';
+                    document.getElementById('game-container').classList.add('shake');
+                    document.getElementById('game-container').style.borderColor = '#FF1493'; // Border turns intense pink
+                }
+
+                if (fastTime <= 0) {
+                    clearInterval(fastTalkInterval);
+                    playBeep(150, 0.5); // Time's up
+                    nextFastQuestion();
+                }
+            }, 1000);
+        }
+
+        function nextFastQuestion() {
+            if (fastTalkInterval) clearInterval(fastTalkInterval);
+            playBeep(1000, 0.1); // Success/Next Beep
+            currentFastQ++;
+            document.getElementById('game-container').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('game-container').classList.remove('shake');
+                loadFastQuestion();
+            }, 200);
+        }
+
+    </script>
+</body>
+</html>
