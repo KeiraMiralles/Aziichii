@@ -213,7 +213,7 @@
             font-size: 1.4rem;
         }
 
-        /* --- SCENE 3: FAST TALK (GIRLISH MODE) --- */
+        /* --- SCENE 3: FAST CHOICE (GIRLISH MODE) --- */
         body.reboot-mode {
             background: var(--bg-reboot);
             /* White Polka Dots */
@@ -259,6 +259,14 @@
             box-shadow: 0 8px 15px rgba(255, 182, 193, 0.4);
             transition: all 0.2s;
         }
+        
+        .selection-counter {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            color: #FF1493;
+            margin-top: 10px;
+            font-weight: bold;
+        }
 
         .choice-container {
             display: flex;
@@ -285,16 +293,16 @@
         }
 
         .choice-btn:hover {
-            background: #FF69B4;
-            color: white;
-            box-shadow: 0 6px 0 #FF1493;
-            transform: translateY(-3px);
-            border-color: #FF1493;
+            background: #FFE4E1;
+            transform: translateY(-2px);
         }
         
-        .choice-btn:active {
-            box-shadow: 0 0 0 #FF1493;
-            transform: translateY(5px);
+        .choice-btn.selected {
+            background: #FF1493;
+            color: white;
+            border-color: #FF1493;
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
         }
 
         /* --- READY OVERLAY --- */
@@ -385,7 +393,7 @@
             <p>Select your challenge:</p>
             <br>
             <button class="menu-btn" onclick="goToBobaIntro()">🧋 Boba Shop Panic</button>
-            <button class="menu-btn" onclick="goToFastTalkIntro()">🚀 Fast Talk</button>
+            <button class="menu-btn" onclick="goToFastChoiceIntro()">🚀 Fast Choice</button>
         </div>
 
         <!-- 1. BOBA INTRO SCREEN -->
@@ -447,23 +455,24 @@
             <button class="boba-btn" onclick="showSlide('slide-menu')">BACK TO MENU</button>
         </div>
 
-        <!-- 5. REBOOT MODE INTRO (FAST TALK INTRO) -->
+        <!-- 5. FAST CHOICE INTRO -->
         <div id="slide-neon-intro" class="slide hidden">
-            <h1>✨ FAST TALK ✨</h1>
+            <h1>✨ FAST CHOICE ✨</h1>
             <p>Thinking fast is hard when choices multiply.</p>
             <p>Apply <strong>CATEGORIZATION</strong> to survive.</p>
             <p>Watch out! The choices will increase!</p>
             <br>
-            <button class="choice-btn" style="background:#FF69B4; color:white; border:none;" onclick="prepFastTalk()">START FAST TALK</button>
+            <button class="choice-btn" style="background:#FF69B4; color:white; border:none;" onclick="prepFastChoice()">START FAST CHOICE</button>
              <div style="margin-top:20px;">
                 <button onclick="backToMenuFromReboot()" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:#FF1493;">Back to Menu</button>
             </div>
         </div>
 
-        <!-- 6. FAST TALK GAME -->
-        <div id="slide-fast-talk" class="slide hidden">
+        <!-- 6. FAST CHOICE GAME -->
+        <div id="slide-fast-choice" class="slide hidden">
             <div class="reboot-timer" id="fast-timer">5</div>
             <h2 id="fast-question" style="margin-top:20px; font-weight:bold; color: #FF69B4;">QUESTION</h2>
+            <div class="selection-counter" id="selection-count">Selected: 0/0</div>
             
             <!-- Dynamic Choice Container -->
             <div id="fast-options-container" class="choice-container">
@@ -505,19 +514,36 @@
             "Coconut Jelly", "Ice Cream", "Creme Brulee"
         ];
         
-        // Fast Talk Data (Progressively Harder)
-        const fastTalkQuestions = [
-            // Round 1: 2 Choices (Easy) - 5 Seconds
-            { q: "Social Media?", options: ["TikTok", "Instagram"], time: 5 },
-            
-            // Round 2: 6 Choices (Medium) - 4 Seconds
-            { q: "Streaming?", options: ["Netflix", "YouTube", "Disney+", "HBO Go", "Prime", "Hulu"], time: 4 },
-            
-            // Round 3: 12 Choices (Hard) - 3 Seconds
-            { q: "Pinoy Snack?", options: ["Turon", "Halo-Halo", "Isaw", "Fishball", "Kwek-kwek", "Taho", "Balut", "Banana Cue", "Siomai", "Fries", "Lumpia", "Tempura"], time: 3 },
-            
-            // Round 4: 16 Choices (Chaos) - 2 Seconds
-            { q: "Fast Food?", options: ["Jollibee", "McDo", "KFC", "Chowking", "Greenwich", "Inasal", "BK", "Wendy's", "Shakey's", "Popeyes", "BonChon", "Kenny's", "Pizza Hut", "Domino's", "Subway", "Panda"], time: 2 }
+        // Fast Choice Data (Renamed from Fast Talk)
+        const fastChoiceLevels = [
+            // Round 1: Pick 3 items from 6 options - 8 Seconds
+            { 
+                q: "Pick 3 Social Apps", 
+                limit: 3,
+                time: 8,
+                options: ["TikTok", "Instagram", "Facebook", "Twitter", "Snapchat", "Reddit"]
+            },
+            // Round 2: Pick 2 items from 8 options - 6 Seconds
+            { 
+                q: "Pick 2 Streaming Apps", 
+                limit: 2,
+                time: 6,
+                options: ["Netflix", "YouTube", "Disney+", "HBO", "Prime", "Hulu", "AppleTV", "Peacock"]
+            },
+            // Round 3: Pick 4 items from 12 options - 8 Seconds
+            { 
+                q: "Pick 4 Snacks", 
+                limit: 4,
+                time: 8,
+                options: ["Turon", "Halo-Halo", "Isaw", "Fishball", "Kwek-kwek", "Taho", "Balut", "Banana Cue", "Siomai", "Fries", "Lumpia", "Tempura"]
+            },
+            // Round 4: Pick 1 items from 16 options (Panic) - 3 Seconds
+            { 
+                q: "Pick 1 Fast Food", 
+                limit: 1,
+                time: 3,
+                options: ["Jollibee", "McDo", "KFC", "Chowking", "Greenwich", "Inasal", "BK", "Wendy's", "Shakey's", "Popeyes", "BonChon", "Kenny's", "Pizza Hut", "Domino's", "Subway", "Panda"]
+            }
         ];
 
         let currentBobaRound = 1;
@@ -525,6 +551,7 @@
         let bobaInterval;
         let currentFastQ = 0;
         let fastTalkInterval;
+        let fastChoiceSelection = []; // Track selected items in current round
         let audioCtx;
 
         // --- AUDIO FUNCTIONS ---
@@ -573,7 +600,7 @@
             showSlide('slide-intro');
         }
 
-        function goToFastTalkIntro() {
+        function goToFastChoiceIntro() {
             initAudio();
             goToRebootMode();
         }
@@ -750,10 +777,10 @@
             showSlide('slide-neon-intro');
         }
 
-        // --- FAST TALK LOGIC ---
-        function prepFastTalk() {
+        // --- FAST CHOICE LOGIC ---
+        function prepFastChoice() {
              runPreGameSequence(() => {
-                 showSlide('slide-fast-talk');
+                 showSlide('slide-fast-choice');
                  loadFastQuestion();
              });
         }
@@ -762,14 +789,20 @@
             if (fastTalkInterval) clearInterval(fastTalkInterval);
             document.getElementById('game-container').classList.remove('shake');
 
-            if(currentFastQ >= fastTalkQuestions.length) {
+            if(currentFastQ >= fastChoiceLevels.length) {
                 showSlide('slide-end');
                 return;
             }
 
-            const qData = fastTalkQuestions[currentFastQ];
+            const qData = fastChoiceLevels[currentFastQ];
             document.getElementById('fast-question').innerText = qData.q;
             
+            // Update Limit Counter
+            document.getElementById('selection-count').innerText = `Selected: 0/${qData.limit}`;
+            
+            // Clear previous selections
+            fastChoiceSelection = [];
+
             // Clear previous buttons
             const container = document.getElementById('fast-options-container');
             container.innerHTML = '';
@@ -779,7 +812,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'choice-btn';
                 btn.innerText = opt;
-                btn.onclick = () => nextFastQuestion();
+                btn.onclick = () => handleFastChoiceSelection(btn, opt, qData.limit);
                 container.appendChild(btn);
             });
             
@@ -814,6 +847,29 @@
                     nextFastQuestion();
                 }
             }, 1000);
+        }
+
+        function handleFastChoiceSelection(btn, option, limit) {
+            if (fastChoiceSelection.includes(option)) {
+                // Deselect logic (optional, but good for UX)
+                fastChoiceSelection = fastChoiceSelection.filter(item => item !== option);
+                btn.classList.remove('selected');
+                playBeep(400, 0.05); // Deselect bloop
+            } else {
+                if (fastChoiceSelection.length < limit) {
+                    fastChoiceSelection.push(option);
+                    btn.classList.add('selected');
+                    playBeep(800, 0.05); // Select beep
+                }
+            }
+
+            // Update Counter UI
+            document.getElementById('selection-count').innerText = `Selected: ${fastChoiceSelection.length}/${limit}`;
+
+            // Check if limit reached
+            if (fastChoiceSelection.length === limit) {
+                 setTimeout(nextFastQuestion, 300); // Slight delay for visual satisfaction
+            }
         }
 
         function nextFastQuestion() {
