@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Katipunan Feud</title>
+<style>
+  :root{
+    --maroon:#7a1f2b;
+    --maroon-dark:#4e1119;
+    --gold:#d9a441;
+    --gold-light:#f0d896;
+    --cream:#f3ead9;
+    --ink:#241512;
+    --panel:#8f2a35;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 50% 0%, #a4303c 0%, var(--maroon) 45%, var(--maroon-dark) 100%);
+    font-family:'Georgia', 'Iowan Old Style', serif;
+    color:var(--cream);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 60px;
+  }
+  .rays{
+    position:fixed;
+    top:-40vw; left:50%;
+    width:180vw; height:180vw;
+    transform:translateX(-50%);
+    background:repeating-conic-gradient(from 0deg, rgba(217,164,65,0.05) 0deg 9deg, transparent 9deg 18deg);
+    pointer-events:none;
+    z-index:0;
+  }
+  header{
+    text-align:center;
+    z-index:1;
+    margin-bottom:18px;
+  }
+  .kicker{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:12px;
+    letter-spacing:2px;
+    color:var(--gold-light);
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:clamp(30px,6vw,52px);
+    margin:0;
+    letter-spacing:1px;
+    text-shadow:0 3px 0 rgba(0,0,0,0.25);
+  }
+  .sub{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:14px;
+    color:var(--cream);
+    opacity:0.8;
+    margin-top:6px;
+  }
+
+  .scoreboard{
+    z-index:1;
+    display:flex;
+    gap:18px;
+    align-items:center;
+    margin:10px 0 22px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+  }
+  .team{
+    background:var(--maroon-dark);
+    border:2px solid var(--gold);
+    border-radius:10px;
+    padding:10px 18px;
+    text-align:center;
+    min-width:120px;
+  }
+  .team input{
+    background:transparent;
+    border:none;
+    color:var(--gold-light);
+    font-family:inherit;
+    font-size:13px;
+    text-align:center;
+    width:100%;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    border-bottom:1px solid rgba(240,216,150,0.3);
+    padding-bottom:4px;
+    margin-bottom:6px;
+  }
+  .team input:focus{outline:none; border-bottom-color:var(--gold);}
+  .team .score{
+    font-size:32px;
+    font-weight:700;
+    color:var(--gold);
+    font-family:Georgia, serif;
+    background:transparent;
+    border:none;
+    width:100%;
+    text-align:center;
+    -moz-appearance:textfield;
+  }
+  .team .score::-webkit-outer-spin-button,
+  .team .score::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .team .score:focus{outline:none;}
+  .team-controls{
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    margin-top:6px;
+  }
+  .team-controls button{
+    width:26px; height:26px;
+    border-radius:50%;
+    border:1px solid var(--gold);
+    background:transparent;
+    color:var(--gold-light);
+    cursor:pointer;
+    font-size:14px;
+    line-height:1;
+  }
+  .strikes{
+    display:flex;
+    gap:4px;
+    font-size:16px;
+    color:#ff6b6b;
+    justify-content:center;
+    margin-top:6px;
+  }
+  .strikes span{opacity:0.15;}
+  .strikes span.active{opacity:1;}
+  .strike-btn{
+    margin-top:6px;
+    width:100%;
+    background:transparent;
+    border:1px solid #ff6b6b;
+    color:#ff6b6b;
+    border-radius:6px;
+    padding:4px 8px;
+    font-size:11px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    cursor:pointer;
+    letter-spacing:0.5px;
+  }
+  .strike-btn:active{transform:scale(0.96);}
+
+  .board{
+    z-index:1;
+    background:linear-gradient(180deg, var(--panel), var(--maroon-dark));
+    border:4px solid var(--gold);
+    border-radius:16px;
+    padding:22px;
+    width:100%;
+    max-width:640px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+  }
+  .round-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    margin-bottom:14px;
+  }
+  .round-nav button{
+    background:var(--maroon-dark);
+    color:var(--gold-light);
+    border:1px solid var(--gold);
+    border-radius:6px;
+    padding:6px 12px;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .round-nav button:disabled{opacity:0.3; cursor:default;}
+  .round-label{
+    font-size:12px;
+    letter-spacing:1px;
+    color:var(--gold-light);
+    opacity:0.85;
+  }
+
+  .question{
+    text-align:center;
+    font-size:clamp(17px,3vw,21px);
+    line-height:1.4;
+    margin-bottom:18px;
+    padding:0 4px;
+  }
+
+  .answers{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .answer-row{
+    display:flex;
+    align-items:center;
+    background:var(--maroon-dark);
+    border:2px solid var(--gold);
+    border-radius:8px;
+    overflow:hidden;
+    cursor:pointer;
+    min-height:46px;
+    transition:background 0.2s;
+  }
+  .answer-row:hover{background:#5c151f;}
+  .answer-num{
+    width:36px;
+    flex-shrink:0;
+    background:var(--gold);
+    color:var(--maroon-dark);
+    font-weight:700;
+    text-align:center;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    align-self:stretch;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .answer-text{
+    flex:1;
+    padding:8px 12px;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+    visibility:hidden;
+  }
+  .answer-points{
+    width:52px;
+    flex-shrink:0;
+    text-align:center;
+    font-weight:700;
+    color:var(--gold-light);
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    visibility:hidden;
+    padding-right:10px;
+  }
+  .answer-row.revealed{cursor:default; background:#3b0e14;}
+  .answer-row.revealed .answer-text,
+  .answer-row.revealed .answer-points{visibility:visible;}
+  .answer-row.revealed .answer-num{background:var(--gold-light);}
+
+  .controls-row{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:18px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    flex-wrap:wrap;
+  }
+  .controls-row button{
+    background:var(--gold);
+    color:var(--maroon-dark);
+    border:none;
+    border-radius:8px;
+    padding:10px 16px;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.4px;
+    cursor:pointer;
+  }
+  .controls-row button.secondary{
+    background:transparent;
+    color:var(--gold-light);
+    border:1px solid var(--gold);
+  }
+  .controls-row button:active{transform:scale(0.97);}
+
+  footer{
+    z-index:1;
+    margin-top:22px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:11px;
+    color:var(--cream);
+    opacity:0.55;
+    text-align:center;
+  }
+
+  @media (max-width:420px){
+    .team{min-width:96px; padding:8px 10px;}
+    .team .score{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+<div class="rays"></div>
+
+<header>
+  <div class="kicker">READINGS IN PHILIPPINE HISTORY</div>
+  <h1>Katipunan Feud</h1>
+  <div class="sub">Survey says... test what your section remembers about the KKK</div>
+</header>
+
+<div class="scoreboard">
+  <div class="team">
+    <input id="team1Name" value="TEAM A" maxlength="14">
+    <input class="score" id="team1Score" type="number" value="0" inputmode="numeric">
+    <div class="team-controls">
+      <button onclick="adjustScore(1,-5)">−</button>
+      <button onclick="adjustScore(1,5)">+</button>
+    </div>
+    <div class="strikes" id="strikes1">
+      <span id="t1s1">✕</span><span id="t1s2">✕</span><span id="t1s3">✕</span>
+    </div>
+    <button class="strike-btn" onclick="strike(1)">Strike A</button>
+  </div>
+
+  <div class="team">
+    <input id="team2Name" value="TEAM B" maxlength="14">
+    <input class="score" id="team2Score" type="number" value="0" inputmode="numeric">
+    <div class="team-controls">
+      <button onclick="adjustScore(2,-5)">−</button>
+      <button onclick="adjustScore(2,5)">+</button>
+    </div>
+    <div class="strikes" id="strikes2">
+      <span id="t2s1">✕</span><span id="t2s2">✕</span><span id="t2s3">✕</span>
+    </div>
+    <button class="strike-btn" onclick="strike(2)">Strike B</button>
+  </div>
+</div>
+
+<div class="board">
+  <div class="round-nav">
+    <button id="prevBtn" onclick="changeRound(-1)">← Prev</button>
+    <span class="round-label" id="roundLabel">ROUND 1 OF 8</span>
+    <button id="nextBtn" onclick="changeRound(1)">Next →</button>
+  </div>
+
+  <div class="question" id="questionText"></div>
+
+  <div class="answers" id="answersList"></div>
+
+  <div class="controls-row">
+    <button class="secondary" onclick="revealAll()">Reveal All</button>
+    <button class="secondary" onclick="resetRound()">Reset Board</button>
+  </div>
+</div>
+
+<footer>Based on your Katipunan manuscript — founding, hierarchy, catalyst events, revolution, and legacy.</footer>
+
+<script>
+const rounds = [
+  {
+    q: "Name a founding member of the Katipunan at the July 7, 1892 Sanduguan.",
+    answers: [
+      { text: "Bonifacio", pts: 30 },
+      { text: "Valentin Diaz", pts: 20 },
+      { text: "Ladislao Diwa", pts: 20 },
+      { text: "Teodoro Plata", pts: 15 },
+      { text: "Deodato Arellano", pts: 15 }
+    ]
+  },
+  {
+    q: "Name a rank in the Katipunan hierarchy.",
+    answers: [
+      { text: "Katipon (black hood)", pts: 40 },
+      { text: "Kawal (green hood)", pts: 35 },
+      { text: "Bayani (red mask)", pts: 25 }
+    ]
+  },
+  {
+    q: "Name a body of the Katipunan's governance structure.",
+    answers: [
+      { text: "Kataastaasang Sanggunian (Supreme)", pts: 35 },
+      { text: "Sangguniang Bayan (Provincial)", pts: 25 },
+      { text: "Sangguniang Balangay (Municipal)", pts: 20 },
+      { text: "Sangguniang Hukuman (Judicial)", pts: 20 }
+    ]
+  },
+  {
+    q: "Name something that triggered the discovery of the Katipunan in 1896.",
+    answers: [
+      { text: "Patiño's confession to Fr. Gil", pts: 30 },
+      { text: "Workplace dispute with de la Cruz", pts: 25 },
+      { text: "Spanish raids seizing rosters", pts: 25 },
+      { text: "Mass arrests of Katipuneros", pts: 20 }
+    ]
+  },
+  {
+    q: "Name an event from the outbreak of the 1896 Revolution.",
+    answers: [
+      { text: "Cry of Pugad Lawin", pts: 30 },
+      { text: "San Juan del Monte attack", pts: 25 },
+      { text: "Martial law declared", pts: 20 },
+      { text: "Cavite factionalism (Magdiwang/Magdalo)", pts: 25 }
+    ]
+  },
+  {
+    q: "Name something connected to the Tejeros Convention.",
+    answers: [
+      { text: "Aguinaldo elected President", pts: 30 },
+      { text: "Bonifacio insulted by Tirona", pts: 30 },
+      { text: "Bonifacio voided the proceedings", pts: 25 },
+      { text: "March 22, 1897", pts: 15 }
+    ]
+  },
+  {
+    q: "Name a woman connected to the Katipunan's Women's Chapter.",
+    answers: [
+      { text: "Gregoria de Jesús", pts: 55 },
+      { text: "Josefa Rizal", pts: 45 }
+    ]
+  },
+  {
+    q: "Name something that's part of the Katipunan's modern legacy.",
+    answers: [
+      { text: "Bonifacio Day (codified 1921)", pts: 30 },
+      { text: "Asociación de los Veteranos", pts: 25 },
+      { text: "Inspiring labor/social justice movements", pts: 25 },
+      { text: "Pasyon ideology's influence", pts: 20 }
+    ]
+  }
+];
+
+let currentRound = 0;
+let strikeCounts = { 1: 0, 2: 0 };
+let revealedAnswers = [];
+
+function renderRound(){
+  const round = rounds[currentRound];
+  document.getElementById('questionText').textContent = round.q;
+  document.getElementById('roundLabel').textContent =
+    'ROUND ' + (currentRound+1) + ' OF ' + rounds.length;
+  document.getElementById('prevBtn').disabled = currentRound === 0;
+  document.getElementById('nextBtn').disabled = currentRound === rounds.length - 1;
+
+  revealedAnswers = new Array(round.answers.length).fill(false);
+  strikeCounts = { 1: 0, 2: 0 };
+  updateStrikes(1);
+  updateStrikes(2);
+
+  const list = document.getElementById('answersList');
+  list.innerHTML = '';
+  round.answers.forEach((a, i) => {
+    const row = document.createElement('div');
+    row.className = 'answer-row';
+    row.onclick = () => revealAnswer(i);
+    row.innerHTML = `
+      <div class="answer-num">${i+1}</div>
+      <div class="answer-text">${a.text}</div>
+      <div class="answer-points">${a.pts}</div>
+    `;
+    row.id = 'ans-' + i;
+    list.appendChild(row);
+  });
+}
+
+function revealAnswer(i){
+  revealedAnswers[i] = true;
+  document.getElementById('ans-' + i).classList.add('revealed');
+}
+
+function revealAll(){
+  const round = rounds[currentRound];
+  round.answers.forEach((a, i) => revealAnswer(i));
+}
+
+function resetRound(){
+  renderRound();
+}
+
+function changeRound(delta){
+  const next = currentRound + delta;
+  if(next < 0 || next >= rounds.length) return;
+  currentRound = next;
+  renderRound();
+}
+
+function strike(team){
+  if(strikeCounts[team] < 3){
+    strikeCounts[team]++;
+    updateStrikes(team);
+  }
+}
+
+function updateStrikes(team){
+  for(let i=1;i<=3;i++){
+    document.getElementById('t'+team+'s'+i).classList.toggle('active', i <= strikeCounts[team]);
+  }
+}
+
+function adjustScore(team, delta){
+  const el = document.getElementById('team' + team + 'Score');
+  const current = parseInt(el.value) || 0;
+  const newVal = Math.max(0, current + delta);
+  el.value = newVal;
+}
+
+renderRound();
+</script>
+</body>
+</html>
